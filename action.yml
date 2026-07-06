@@ -23,7 +23,20 @@ runs:
       shell: bash
       env:
         ANTHROPIC_API_KEY: ${{ inputs.llm_api_key }}
-      run: tfb-heal-sentinel /tmp/pr.diff --json --severity-floor "${{ inputs.severity_floor }}" > /tmp/tfb-heal-sentinel-report.json
+      run: |
+        set +e
+        tfb-heal-sentinel /tmp/pr.diff --json --severity-floor "${{ inputs.severity_floor }}" > /tmp/tfb-heal-sentinel-report.json
+        cli_exit=$?
+        set -e
+        # CLI exit codes: 0 = clean · 2 = findings-above-floor (informational,
+        # not error — the PR-comment step is how findings surface to reviewers) ·
+        # anything else = CLI error (bad args, malformed diff, unexpected crash).
+        # Named fallback per D-EVERY-FAIL-SOFT-NAMES-ITS-FALLBACK-EXPLICITLY.
+        case "$cli_exit" in
+          0|2) echo "heal-sentinel CLI exit=$cli_exit (report generated; downstream steps proceed)" ;;
+          *)   echo "heal-sentinel CLI exit=$cli_exit (unexpected CLI error — halting)"; exit "$cli_exit" ;;
+        esac
+        test -s /tmp/tfb-heal-sentinel-report.json || { echo "heal-sentinel: report file empty — halting"; exit 3; }
     - name: Post PR comment
       uses: actions/github-script@v7
       with:
