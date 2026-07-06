@@ -7,9 +7,20 @@ inputs:
   block_merge_on_critical:
     description: "true | false"
     default: "true"
+  llm_provider:
+    description: "openrouter | anthropic | auto (default: auto — chooses openrouter if OPENROUTER_API_KEY set, else anthropic if ANTHROPIC_API_KEY set, else catalog fallback)"
+    default: "auto"
+  llm_model:
+    description: "Model override (e.g. deepseek/deepseek-v4-pro for openrouter, claude-sonnet-4-20250514 for anthropic). Optional; each provider has a working default."
+    default: ""
   llm_api_key:
-    description: "Anthropic API key"
-    required: true
+    description: "Anthropic API key (kept for back-compat; only used when llm_provider=anthropic or auto with no OPENROUTER_API_KEY)"
+    required: false
+    default: ""
+  openrouter_api_key:
+    description: "OpenRouter API key (used when llm_provider=openrouter or auto with the key set)"
+    required: false
+    default: ""
 runs:
   using: "composite"
   steps:
@@ -23,6 +34,10 @@ runs:
       shell: bash
       env:
         ANTHROPIC_API_KEY: ${{ inputs.llm_api_key }}
+        OPENROUTER_API_KEY: ${{ inputs.openrouter_api_key }}
+        HEAL_SENTINEL_LLM_PROVIDER: ${{ inputs.llm_provider }}
+        HEAL_SENTINEL_OPENROUTER_MODEL: ${{ inputs.llm_model }}
+        HEAL_SENTINEL_ANTHROPIC_MODEL: ${{ inputs.llm_model }}
       run: |
         set +e
         tfb-heal-sentinel /tmp/pr.diff --json --severity-floor "${{ inputs.severity_floor }}" > /tmp/tfb-heal-sentinel-report.json

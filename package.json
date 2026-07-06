@@ -1,6 +1,6 @@
 {
   "name": "tfb-heal-sentinel",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "AI code reviewer that refuses praise and surfaces root-wound review findings.",
   "type": "module",
   "license": "MIT",

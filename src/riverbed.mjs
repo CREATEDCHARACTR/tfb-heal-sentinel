@@ -7,7 +7,7 @@ export async function enrichRiverbeds(findings, catalog, options = {}) {
 
   if (options.includeRiverbed === false) {
     actions.push("riverbed_layer_skipped_by_option");
-    return { findings, actions, errors, calls, tokens, fallback };
+    return { findings, actions, errors, calls, tokens, fallback, provider_used: "none" };
   }
 
   if (typeof options.riverbedProvider === "function") {
@@ -27,56 +27,125 @@ export async function enrichRiverbeds(findings, catalog, options = {}) {
       }
     }
     actions.push(`riverbed_provider_called_${calls}_time(s)`);
-    return { findings: enriched, actions, errors, calls, tokens, fallback };
+    return { findings: enriched, actions, errors, calls, tokens, fallback, provider_used: "custom" };
   }
 
-  const apiKey = options.llmApiKey || getEnv("ANTHROPIC_API_KEY");
   const fetchImpl = options.fetch || globalThis.fetch;
-  if (!apiKey || typeof fetchImpl !== "function") {
+  const explicitProvider = String(options.llmProvider || getEnv("HEAL_SENTINEL_LLM_PROVIDER") || "auto").toLowerCase();
+  const openrouterKey = options.openrouterApiKey || getEnv("OPENROUTER_API_KEY");
+  const anthropicKey = options.llmApiKey || getEnv("ANTHROPIC_API_KEY");
+
+  const chosenProvider = pickProvider(explicitProvider, openrouterKey, anthropicKey);
+  if (!chosenProvider || typeof fetchImpl !== "function") {
     fallback = "riverbed_llm_unavailable_catalog_fallback";
     actions.push("riverbed_catalog_fallback_used");
-    return { findings, actions, errors, calls, tokens, fallback };
+    return { findings, actions, errors, calls, tokens, fallback, provider_used: "none" };
   }
 
   const enriched = [];
+  let providerSucceededAtLeastOnce = false;
   for (const finding of findings) {
     const doctrine = catalog.find((entry) => entry.id === finding.doctrine);
     try {
       calls += 1;
       const prompt = buildRiverbedPrompt(finding, doctrine);
       tokens += Math.ceil(prompt.length / 4);
-      const response = await fetchImpl("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01"
-        },
-        body: JSON.stringify({
-          model: options.model || getEnv("HEAL_SENTINEL_ANTHROPIC_MODEL") || "claude-sonnet-4-20250514",
-          max_tokens: 500,
-          messages: [{ role: "user", content: prompt }]
-        })
-      });
-      if (!response.ok) {
-        throw new Error(`anthropic_status_${response.status}`);
-      }
-      const body = await response.json();
-      const text = body?.content?.[0]?.text || "{}";
-      const parsed = JSON.parse(text);
+      const parsed = chosenProvider === "openrouter"
+        ? await callOpenRouter({ fetchImpl, apiKey: openrouterKey, prompt, options })
+        : await callAnthropic({ fetchImpl, apiKey: anthropicKey, prompt, options });
       enriched.push({
         ...finding,
         riverbed: parsed.riverbed || finding.riverbed,
         heal_shape: parsed.heal_shape || finding.heal_shape
       });
+      providerSucceededAtLeastOnce = true;
     } catch (error) {
-      fallback = "riverbed_llm_failed_catalog_fallback";
-      errors.push({ name: "riverbed_llm_failed", message: error.message, file: finding.file });
+      fallback = `riverbed_${chosenProvider}_failed_catalog_fallback`;
+      errors.push({ name: `riverbed_${chosenProvider}_failed`, message: error.message, file: finding.file });
       enriched.push(finding);
     }
   }
-  actions.push(`riverbed_llm_called_${calls}_time(s)`);
-  return { findings: enriched, actions, errors, calls, tokens, fallback };
+  actions.push(`riverbed_${chosenProvider}_called_${calls}_time(s)`);
+  return {
+    findings: enriched,
+    actions,
+    errors,
+    calls,
+    tokens,
+    fallback,
+    provider_used: providerSucceededAtLeastOnce ? chosenProvider : "none"
+  };
+}
+
+function pickProvider(explicit, openrouterKey, anthropicKey) {
+  if (explicit === "openrouter") return openrouterKey ? "openrouter" : null;
+  if (explicit === "anthropic") return anthropicKey ? "anthropic" : null;
+  if (openrouterKey) return "openrouter";
+  if (anthropicKey) return "anthropic";
+  return null;
+}
+
+async function callOpenRouter({ fetchImpl, apiKey, prompt, options }) {
+  const model = options.model
+    || getEnv("HEAL_SENTINEL_OPENROUTER_MODEL")
+    || "deepseek/deepseek-v4-pro";
+  const response = await fetchImpl("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "authorization": `Bearer ${apiKey}`,
+      "HTTP-Referer": "https://github.com/CREATEDCHARACTR/tfb-heal-sentinel",
+      "X-Title": "tfb-heal-sentinel"
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 500,
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" }
+    })
+  });
+  if (!response.ok) {
+    throw new Error(`openrouter_status_${response.status}`);
+  }
+  const body = await response.json();
+  const text = body?.choices?.[0]?.message?.content || "{}";
+  return safeParseJson(text);
+}
+
+async function callAnthropic({ fetchImpl, apiKey, prompt, options }) {
+  const model = options.model
+    || getEnv("HEAL_SENTINEL_ANTHROPIC_MODEL")
+    || "claude-sonnet-4-20250514";
+  const response = await fetchImpl("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01"
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 500,
+      messages: [{ role: "user", content: prompt }]
+    })
+  });
+  if (!response.ok) {
+    throw new Error(`anthropic_status_${response.status}`);
+  }
+  const body = await response.json();
+  const text = body?.content?.[0]?.text || "{}";
+  return safeParseJson(text);
+}
+
+function safeParseJson(text) {
+  const trimmed = String(text || "").trim();
+  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+  const candidate = fenced ? fenced[1] : trimmed;
+  try {
+    return JSON.parse(candidate);
+  } catch {
+    return {};
+  }
 }
 
 export function buildRiverbedPrompt(finding, doctrine) {
