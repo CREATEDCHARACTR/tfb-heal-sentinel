@@ -1,0 +1,105 @@
+{
+  "schema_version": "heal_sentinel.release_claim_lock.v1",
+  "locked_at": "2026-07-01T00:00:00Z",
+  "purpose": "Pre-register the release claims before public wording or publish action.",
+  "public_ready_requires_all_green": true,
+  "claims": [
+    {
+      "id": "local_build_exists",
+      "status": "green",
+      "public_wording_allowed": "Heal Sentinel has a local v0 build with CLI, analyzer, public demo, MCP wrapper, Action wrapper, Skill manifest, and doctrine catalog.",
+      "required_receipts": [
+        "npm run verify",
+        "post-build node --check sweep",
+        "sample and clean CLI probes"
+      ],
+      "missing_receipts": []
+    },
+    {
+      "id": "drawbridge_false_positive_restraint",
+      "status": "green",
+      "public_wording_allowed": "Heal Sentinel separates obvious wound diffs from clean and hard-negative fixtures in the local suite.",
+      "required_receipts": [
+        "examples/clean.diff",
+        "examples/hard-negative-refactor.diff",
+        "examples/adversarial-text.diff",
+        "test/analyze.test.mjs"
+      ],
+      "missing_receipts": []
+    },
+    {
+      "id": "skybridge_admitted",
+      "status": "green",
+      "public_wording_allowed": "Skybridge admission has been observed locally; publish approval is a separate claim.",
+      "required_receipts": [
+        "release/skybridge-admission.receipt.json"
+      ],
+      "missing_receipts": []
+    },
+    {
+      "id": "security_header_contract",
+      "status": "yellow",
+      "public_wording_allowed": "A strict app-specific header contract exists for /heal-sentinel/**; hosted-origin proof is still required before public-ready wording.",
+      "required_receipts": [
+        "firebase/firebase.json /heal-sentinel/** header block",
+        "security_header_probe against strict local preview"
+      ],
+      "missing_receipts": [
+        "security_header_probe against deployed Firebase or preview channel"
+      ]
+    },
+    {
+      "id": "browser_result_proof",
+      "status": "green",
+      "public_wording_allowed": "The public page exposes both control-level and result-level proof surfaces for browser verification.",
+      "required_receipts": [
+        "Result verdict control",
+        "Analysis report JSON control",
+        "Playwright desktop and mobile receipt"
+      ],
+      "missing_receipts": []
+    },
+    {
+      "id": "route_string_contract",
+      "status": "green",
+      "public_wording_allowed": "The /heal-sentinel/ route has an explicit release string contract; no cron is scheduled because this is a static manual-release surface.",
+      "required_receipts": [
+        "ops/release-string.json"
+      ],
+      "missing_receipts": []
+    },
+    {
+      "id": "watcher_liveness",
+      "status": "green",
+      "public_wording_allowed": "Heal Sentinel has a product route/watch contract and the wider substrate watcher heartbeat scan was fresh on the release packet.",
+      "required_receipts": [
+        "scripts/watcher_heartbeat.py --stale 1800 --json",
+        "release/watcher-liveness.receipt.json"
+      ],
+      "missing_receipts": []
+    },
+    {
+      "id": "telescope_claim_boundary",
+      "status": "green",
+      "public_wording_allowed": "Claims are locked to receipt-backed wording; public-ready remains false until every required release receipt is green.",
+      "required_receipts": [
+        "release/claim-lock.json",
+        "python3 tfb_telescope/telescope_v0.py"
+      ],
+      "missing_receipts": []
+    },
+    {
+      "id": "public_release_approval",
+      "status": "hold",
+      "public_wording_allowed": "Not public-ready. CEO release approval and hosted-origin security proof are still required.",
+      "required_receipts": [
+        "CEO release approval token",
+        "hosted security header receipt"
+      ],
+      "missing_receipts": [
+        "CEO release approval token",
+        "hosted security header receipt"
+      ]
+    }
+  ]
+}

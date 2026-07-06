@@ -1,0 +1,27 @@
+diff --git a/scripts/foo.py b/scripts/foo.py
+index 1111111..2222222 100644
+--- a/scripts/foo.py
++++ b/scripts/foo.py
+@@ -1,5 +1,12 @@
++def load_payload(path):
++    try:
++        body = path.read_text()
++        return json.loads(body)
++    except Exception:
++        pass
++
++# this should handle missing files
++# temporary workaround until we wire the caller contract  # fix-posture-sentinel: skip-line
+diff --git a/src/api/handler.ts b/src/api/handler.ts
+index 3333333..4444444 100644
+--- a/src/api/handler.ts
++++ b/src/api/handler.ts
+@@ -4,3 +4,10 @@
++export async function handler(req: Request) {
++  try {
++    const res = await fetch("https://api.example.com/data");
++    return JSON.parse(await res.text());
++  } catch (error) {
++    return { status: "ok", data: [] };
++  }
++}

@@ -1,0 +1,6 @@
+{
+  "op": "heal_sentinel.admission.placeholder",
+  "ok": false,
+  "reason": "Dist carries release/skybridge-admission.receipt.json when npm run admit has been run. This placeholder is not a release certificate.",
+  "next": "npm run admit && npm run build"
+}

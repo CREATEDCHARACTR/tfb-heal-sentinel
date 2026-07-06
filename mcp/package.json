@@ -1,0 +1,14 @@
+{
+  "name": "@projecttfb/heal-sentinel-mcp",
+  "version": "0.1.0",
+  "description": "MCP wrapper for Heal Sentinel diff analysis.",
+  "type": "module",
+  "private": true,
+  "license": "UNLICENSED",
+  "bin": {
+    "heal-sentinel-mcp": "./server.mjs"
+  },
+  "scripts": {
+    "test": "node server.mjs --self-test"
+  }
+}

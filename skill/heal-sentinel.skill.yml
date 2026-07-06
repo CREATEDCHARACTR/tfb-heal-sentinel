@@ -1,0 +1,25 @@
+name: tfb-heal-sentinel
+display_name: "Heal Sentinel"
+description: |
+  Scans a git diff for anti-heal vocabulary, conjoined fail-soft patterns,
+  unnamed constraints, and prediction-without-verification. Returns the
+  riverbed wound plus concrete heal-shape per finding. Refuses praise defaults.
+version: 0.1.0
+author: Saul Lowery
+license: UNLICENSED
+entry: ../index.mjs
+inputs:
+  - name: diff
+    type: string
+    required: true
+    description: "Git diff as text"
+  - name: options
+    type: object
+    required: false
+outputs:
+  - name: report
+    type: object
+    description: "Structured HealReport"
+skybridge_admission:
+  tier: "pending"
+  cert_path: "dist/skybridge-cert.json"

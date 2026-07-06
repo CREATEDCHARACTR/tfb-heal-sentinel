@@ -1,0 +1,21 @@
+diff --git a/src/result.ts b/src/result.ts
+index 1111111..2222222 100644
+--- a/src/result.ts
++++ b/src/result.ts
+@@ -0,0 +1,14 @@
++export function operationResult(input: string) {
++  const trimmed = input.trim();
++  const actions = ["trimmed_input"];
++  const errors: Array<{ name: string; message: string }> = [];
++  const metrics = { inputLength: input.length, outputLength: trimmed.length };
++
++  return {
++    op: "example.operation_result",
++    ok: true,
++    actions,
++    skips: [],
++    errors,
++    metrics,
++    value: trimmed
++  };
++}

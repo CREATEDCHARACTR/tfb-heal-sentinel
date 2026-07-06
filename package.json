@@ -1,0 +1,28 @@
+{
+  "name": "tfb-heal-sentinel",
+  "version": "0.1.1",
+  "description": "AI code reviewer that refuses praise and surfaces root-wound review findings.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "tfb-heal-sentinel": "./bin/heal-sentinel.mjs"
+  },
+  "exports": {
+    ".": "./src/analyze.mjs",
+    "./format": "./src/formatPrComment.mjs",
+    "./doctrines.json": "./doctrines.json"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "build": "node scripts/build.mjs",
+    "verify": "npm test && npm run build",
+    "admit": "node scripts/admit.mjs",
+    "release:gate": "node scripts/release-gate.mjs",
+    "release:ready": "node scripts/release-gate.mjs --require-public-ready",
+    "preview:strict": "node scripts/strict-preview-server.mjs",
+    "prepublishOnly": "npm run test && npm run build && npm run admit"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

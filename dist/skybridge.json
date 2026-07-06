@@ -1,0 +1,11 @@
+{
+  "hosts": [
+    "api.anthropic.com"
+  ],
+  "directives": [
+    "connect-src"
+  ],
+  "capabilities": [
+    "storage:scoped"
+  ]
+}

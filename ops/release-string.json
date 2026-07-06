@@ -1,0 +1,47 @@
+{
+  "schema_version": "heal_sentinel.release_string.v1",
+  "surface": "heal-sentinel-public-demo",
+  "owner": "i-XO / Heal Sentinel release lane",
+  "route": "/heal-sentinel/",
+  "cadence": "manual_release_gate_only",
+  "cron_required": false,
+  "tunnel_required": false,
+  "six_link_string": [
+    {
+      "link": "planned_route",
+      "value": "/heal-sentinel/"
+    },
+    {
+      "link": "expected_response",
+      "value": "HTTP 200 text/html with static module app"
+    },
+    {
+      "link": "security_check",
+      "value": "python3 scripts/security_header_probe.py <hosted-or-preview-url>/heal-sentinel/"
+    },
+    {
+      "link": "browser_check",
+      "value": "TFBthumb control proof plus result-level browser receipt"
+    },
+    {
+      "link": "escalation_surface",
+      "value": "#security-events for security, release claim lock for publish wording"
+    },
+    {
+      "link": "release_owner",
+      "value": "CEO approval required before public publish or package registry release"
+    }
+  ],
+  "absence_findings": [
+    {
+      "surface": "cron",
+      "decision": "not_required",
+      "reason": "Static public route has no recurring job. A cron would add a string-without-need."
+    },
+    {
+      "surface": "tunnel",
+      "decision": "not_required",
+      "reason": "Hosted route is served by Firebase Hosting; local preview may use a temporary localhost port only."
+    }
+  ]
+}

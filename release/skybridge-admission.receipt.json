@@ -1,0 +1,20 @@
+{
+  "op": "heal_sentinel.skybridge_admission",
+  "ok": true,
+  "verdict": "ADMIT",
+  "tier": "B",
+  "actions": [
+    "ran_tfb_skybridge_check",
+    "wrote_durable_admission_receipt"
+  ],
+  "skips": [],
+  "errors": [],
+  "metrics": {
+    "exit_status": 0,
+    "admitted_at": "2026-07-06T03:34:39.362Z",
+    "stdout_bytes": 791,
+    "stderr_bytes": 0
+  },
+  "next": "Keep this receipt with the release packet; CEO publish approval remains separate.",
+  "stdout": "TFB Skybridge — Dev CLI\n────────────────────────────────────────────────────────────────────────\nChecking .\n\n[1/3] Manifest — declared in skybridge.json\n  hosts:        api.anthropic.com\n  directives:   connect-src\n  capabilities: storage:scoped\n  (Cables found 0 grant(s) in source — diagnostic only when manifest is declared)\n\n[2/3] Battery — adversarial pre-ship (4 seeds × 5 payloads = 20 trials)\n  PASS · variance 0.000 · violations 0\n\n[3/3] Verdict: ✓ ADMIT · Tier B\n  time to verdict: 0.01s\n\n  Your app is deterministic and in-policy across every trial.\n  If submitted, an admission certificate at Tier B issues immediately.\n\n"
+}

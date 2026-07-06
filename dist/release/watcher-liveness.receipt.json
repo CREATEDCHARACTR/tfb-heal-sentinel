@@ -1,0 +1,19 @@
+{
+  "op": "heal_sentinel.watcher_liveness_receipt",
+  "ok": true,
+  "source_command": "python3 scripts/watcher_heartbeat.py --stale 1800 --json",
+  "observed_at": "2026-07-01T19:57:22Z",
+  "actions": [
+    "scanned"
+  ],
+  "errors": [],
+  "metrics": {
+    "total": 7,
+    "fresh": 7,
+    "stale": 0,
+    "base_max_age_seconds": 1800,
+    "max_age_seconds": 1800,
+    "schedule_cadences_applied": 6
+  },
+  "next": "all_watchers_alive"
+}
