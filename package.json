@@ -15,7 +15,8 @@
   "scripts": {
     "test": "node --test test/*.test.mjs",
     "build": "node scripts/build.mjs",
-    "verify": "npm test && npm run build",
+    "verify": "npm test",
+    "verify:release": "npm test && npm run build",
     "admit": "node scripts/admit.mjs",
     "release:gate": "node scripts/release-gate.mjs",
     "release:ready": "node scripts/release-gate.mjs --require-public-ready",
